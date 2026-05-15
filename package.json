@@ -1,0 +1,12 @@
+{
+  "name": "car-cost-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aplicatie locala pentru evidenta cheltuielilor auto",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

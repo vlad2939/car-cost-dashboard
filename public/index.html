@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Evidență cheltuieli auto</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Sidebar-ul conține identitatea mașinii, navigația principală și totalul general. -->
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-label="Hyundai">
+            <img src="hyundai-logo.svg" alt="" />
+          </span>
+          <div>
+            <strong id="carName">Hyundai&nbsp;&nbsp;i20</strong>
+            <span>Evidență costuri</span>
+          </div>
+        </div>
+        <nav class="nav" aria-label="Sectiuni">
+          <button class="nav-button active" data-view="dashboard" title="Dashboard">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 11.5 12 5l8 6.5"></path>
+                <path d="M6.5 10.5V19h11v-8.5"></path>
+                <path d="M10 19v-5h4v5"></path>
+              </svg>
+            </span> Dashboard
+          </button>
+          <button class="nav-button" data-view="fuel" title="Combustibil">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M7 3h7a1 1 0 0 1 1 1v17H6V4a1 1 0 0 1 1-1Z"></path>
+                <path d="M9 7h4"></path>
+                <path d="M15 8h2l2 2v8a2 2 0 0 0 4 0v-6l-3-3"></path>
+                <path d="M6 21h10"></path>
+              </svg>
+            </span> Combustibil
+          </button>
+          <button class="nav-button" data-view="expenses" title="Cheltuieli">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                <path d="M3 9h18"></path>
+                <path d="M8 13h2"></path>
+                <path d="M8 16h5"></path>
+              </svg>
+            </span> Cheltuieli
+          </button>
+          <button class="nav-button" data-view="edit" title="Adaugă sau editează">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 5v14"></path>
+                <path d="M5 12h14"></path>
+                <path d="M16.5 4.5 19.5 7.5 9 18l-4 1 1-4Z"></path>
+              </svg>
+            </span> Adaugă / Editează
+          </button>
+          <button class="nav-button" data-view="backup" title="Backup și restore">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </span> Backup / Restore
+          </button>
+        </nav>
+        <div class="side-note">
+          <span>TOTAL</span>
+          <strong id="sideTotal">0 lei</strong>
+          <small id="sideUpdated">ultima actualizare: -</small>
+        </div>
+        <button class="sidebar-footer" id="readmeTrigger" type="button">@ concept și realizare vlad 39</button>
+      </aside>
+
+      <main class="main">
+        <!-- Header-ul se schimbă din JavaScript în funcție de pagina activă. -->
+        <header class="topbar">
+          <div>
+            <h1 id="pageTitle">Dashboard</h1>
+            <p id="pageSubtitle">Privire rapidă peste costuri, consum și kilometri.</p>
+          </div>
+          <div class="topbar-actions">
+            <button class="theme-toggle" id="themeToggle" type="button" title="Schimbă tema" aria-label="Schimbă tema">
+              <span class="theme-icon theme-sun" aria-hidden="true">☀</span>
+              <span class="theme-icon theme-moon" aria-hidden="true">☾</span>
+            </button>
+            <div class="km-badge hidden" id="fuelLitersBadge" aria-label="Total combustibil">
+              <span>TOTAL LITRI</span>
+              <strong>0 l</strong>
+            </div>
+            <div class="km-badge" id="kmBadge" aria-label="Kilometri total">
+              <span>KM TOTAL</span>
+              <strong>0</strong>
+            </div>
+          </div>
+        </header>
+
+        <!-- Filtrele sunt afișate doar pe paginile cu liste/date analizabile. -->
+        <section class="filters">
+          <label>
+            De la
+            <select id="filterStart"></select>
+          </label>
+          <label>
+            Până la
+            <select id="filterEnd"></select>
+          </label>
+          <label>
+            Categorie
+            <select id="filterCategory">
+              <option value="">Toate</option>
+            </select>
+          </label>
+          <label>
+            Căutare
+            <input type="search" id="filterSearch" placeholder="produs, tip, benzinărie" />
+          </label>
+          <button class="ghost-button" id="clearFilters">Șterge filtre</button>
+        </section>
+
+        <!-- Dashboard: KPI-uri, grafice și ultimele înregistrări. -->
+        <section class="view active" id="dashboardView">
+          <div class="kpi-grid" id="kpiGrid"></div>
+          <div class="chart-grid">
+            <article class="panel wide">
+              <div class="panel-header">
+                <h2>Cheltuieli lunare</h2>
+                <span>lei</span>
+              </div>
+              <canvas id="monthlyChart" height="260"></canvas>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Categorii</h2>
+                <span>total</span>
+              </div>
+              <canvas id="categoryChart" height="260"></canvas>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Consum</h2>
+                <span>l/100 km</span>
+              </div>
+              <canvas id="consumptionChart" height="260"></canvas>
+            </article>
+            <article class="panel wide">
+              <div class="panel-header">
+                <h2>Preț benzină</h2>
+                <span>lei/l</span>
+              </div>
+              <canvas id="priceChart" height="260"></canvas>
+            </article>
+          </div>
+          <div class="split-grid">
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Ultimele cheltuieli</h2>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Data</th><th>Categorie</th><th>Produs</th><th>Cost</th></tr></thead>
+                  <tbody id="recentExpenses"></tbody>
+                </table>
+              </div>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Ultimele alimentări</h2>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Data</th><th>Benzinărie</th><th>Litri</th><th>Consum</th></tr></thead>
+                  <tbody id="recentFuel"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Combustibil: tabelul complet al alimentărilor. -->
+        <section class="view" id="fuelView">
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Alimentări</h2>
+              <button class="primary-button small" data-open-form="fuel">＋ Nou</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th><th>Benzinărie</th><th>Cost</th><th>Lei/l</th><th>Litri</th><th>Km total</th><th>Km/plin</th><th>Consum</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="fuelTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <!-- Cheltuieli: tabelul complet pentru costuri non-combustibil. -->
+        <section class="view" id="expensesView">
+          <article class="panel">
+            <div class="panel-header">
+              <h2>Cheltuieli</h2>
+              <button class="primary-button small" data-open-form="expense">＋ Nou</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th><th>Categorie</th><th>Produs</th><th>Tip</th><th>Cost</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="expenseTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <!-- Formulare: același ecran permite adăugare și editare. -->
+        <section class="view" id="editView">
+          <div class="form-grid">
+            <article class="panel">
+              <div class="panel-header">
+                <h2 id="expenseFormTitle">Cheltuială</h2>
+              </div>
+              <form id="expenseForm" class="record-form">
+                <input type="hidden" name="id" />
+                <label>Data <input type="date" name="date" required /></label>
+                <label>Categorie <input name="category" list="categoryList" required /></label>
+                <label>Produs <input name="product" required /></label>
+                <label>Tip <input name="type" /></label>
+                <label>Cost lei <input name="costLei" type="number" step="0.01" required /></label>
+                <label>Km total <input name="odometerKm" type="number" step="1" /></label>
+                <label class="full">Note <textarea name="notes" rows="3"></textarea></label>
+                <div class="form-actions">
+                  <button type="button" class="ghost-button" id="resetExpense">Reseteaza</button>
+                  <button class="primary-button">Salvează cheltuiala</button>
+                </div>
+              </form>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <h2 id="fuelFormTitle">Alimentare</h2>
+              </div>
+              <form id="fuelForm" class="record-form">
+                <input type="hidden" name="id" />
+                <label>Data <input type="date" name="date" required /></label>
+                <label>Benzinărie <input name="station" required /></label>
+                <label>Cost lei <input name="costLei" type="number" step="0.01" required /></label>
+                <label>Lei/l <input name="priceLeiPerLiter" type="number" step="0.01" /></label>
+                <label>Litri <input name="liters" type="number" step="0.01" /></label>
+                <label>Km total <input name="odometerKm" type="number" step="1" /></label>
+                <label>Km/plin <input name="kmSinceLastFill" type="number" step="1" /></label>
+                <label>Consum <input name="consumptionPer100Km" type="number" step="0.01" /></label>
+                <label class="full">Note <textarea name="notes" rows="3"></textarea></label>
+                <div class="form-actions">
+                  <button type="button" class="ghost-button" id="resetFuel">Reseteaza</button>
+                  <button class="primary-button">Salvează alimentare</button>
+                </div>
+              </form>
+            </article>
+          </div>
+        </section>
+
+        <!-- Backup: export/import complet al bazei locale JSON. -->
+        <section class="view" id="backupView">
+          <div class="form-grid">
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Backup</h2>
+                  <p>Salvează toate datele aplicației într-un fișier JSON.</p>
+                </div>
+              </div>
+              <button class="primary-button" id="downloadBackup">Descarca backup JSON</button>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Restore</h2>
+                  <p>Încarcă un backup JSON și înlocuiește datele curente.</p>
+                </div>
+              </div>
+              <label class="full">Fișier backup
+                <input type="file" id="restoreFile" accept="application/json,.json" />
+              </label>
+              <div class="form-actions">
+                <button class="primary-button" id="restoreBackup">Încarcă backup</button>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <datalist id="categoryList"></datalist>
+    <div class="chart-tooltip" id="chartTooltip"></div>
+    <!-- Popup silent pentru documentația proiectului, deschis din footer. -->
+    <div class="readme-modal" id="readmeModal" aria-hidden="true">
+      <div class="readme-backdrop" id="readmeBackdrop"></div>
+      <section class="readme-dialog" role="dialog" aria-modal="true" aria-labelledby="readmeTitle">
+        <header class="readme-header">
+          <div>
+            <span>Documentatie</span>
+            <h2 id="readmeTitle">Evidență cheltuieli auto</h2>
+          </div>
+          <button class="icon-button" id="readmeClose" type="button" title="Închide">×</button>
+        </header>
+        <article class="readme-content" id="readmeContent"></article>
+      </section>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
