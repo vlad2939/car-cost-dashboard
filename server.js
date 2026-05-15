@@ -637,10 +637,10 @@ function numberOrNull(value) {
  * Curăță numele benzinăriei de prefixul "b-" care apare în date
  * importate din Excel (ex: "b-Rompetrol" → "Rompetrol").
  *
- * Regex: /^b-\s*/i
- *   ^    → doar la începutul string-ului
- *   b-   → prefixul literal (case-insensitive cu flag i)
- *   \s*  → spații opționale după prefix
+ * Regex aplicat: /^b-\s+/i  — componente:
+ *   ^   = ancora început de string
+ *   b-  = prefixul literal de eliminat (case-insensitive, flag i)
+ *   \s+ = spații opționale după prefix
  *
  * @param {*} value
  * @returns {string}
