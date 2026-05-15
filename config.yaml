@@ -1,5 +1,5 @@
 name: "Car Cost Dashboard"
-version: "1.4.1"
+version: "1.4.2"
 slug: car_cost_dashboard
 description: "Dashboard local pentru evidenta costurilor auto, rulat ca add-on Home Assistant."
 url: "https://github.com/vlad2939/car-cost-dashboard"
