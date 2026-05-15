@@ -1,6 +1,6 @@
 {
   "name": "car-cost-dashboard",
-  "version": "17.3.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Aplicatie locala pentru evidenta cheltuielilor auto",
   "scripts": {

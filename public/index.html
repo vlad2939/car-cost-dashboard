@@ -2,24 +2,84 @@
 <html lang="ro">
   <head>
     <meta charset="utf-8" />
+    <!--
+      viewport: asigură că pe mobile pagina nu e scalată automat.
+      initial-scale=1 înseamnă 1px CSS = 1px fizic la zoom normal.
+    -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Evidență cheltuieli auto</title>
+
+    <!--
+      styles.css conține tot stilul aplicației: teme (light/dark),
+      layout, componente, grafice, responsive. NU există CSS inline sau
+      biblioteci externe de stilizare — totul e scris manual.
+    -->
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+
+    <!--
+      ════════════════════════════════════════════════════════════════════
+      APP SHELL
+      ════════════════════════════════════════════════════════════════════
+      Containerul principal al aplicației. Folosește CSS Grid cu două
+      coloane: sidebar fix (stânga) + conținut fluid (dreapta).
+      Vezi `.app-shell` în styles.css pentru dimensiuni.
+    -->
     <div class="app-shell">
-      <!-- Sidebar-ul conține identitatea mașinii, navigația principală și totalul general. -->
+
+      <!--
+        ══════════════════════════════════════════════════════════════════
+        SIDEBAR
+        ══════════════════════════════════════════════════════════════════
+        Panoul lateral stâng: rămâne fix pe ecran (sticky) indiferent
+        de scroll-ul din conținut. Conține:
+          1. Brand (logo + nume mașină)
+          2. Navigație principală
+          3. Card total costuri
+          4. Footer cu link documentație
+      -->
       <aside class="sidebar">
+
+        <!--
+          BRAND
+          Afișează logo-ul Hyundai și numele mașinii + subtitlul.
+          - `id="carName"` este suprascris de JavaScript din data/meta.json
+            (câmpul "car") la fiecare încărcare a paginii.
+          - Logo-ul e un fișier SVG separat (hyundai-logo.svg).
+          - Dimensiunea fontului pentru "Hyundai i20" se modifică din
+            CSS în `.brand strong { font-size: ... }`.
+          - Spațierea dintre cuvinte se modifică cu `word-spacing` în CSS.
+        -->
         <div class="brand">
           <span class="brand-mark" aria-label="Hyundai">
             <img src="hyundai-logo.svg" alt="" />
           </span>
           <div>
-            <strong id="carName">Hyundai&nbsp;&nbsp;i20</strong>
+            <strong id="carName">Hyundai i20</strong>
             <span>Evidență costuri</span>
           </div>
         </div>
+
+        <!--
+          NAVIGAȚIE PRINCIPALĂ
+          Fiecare buton are atributul `data-view` cu numele view-ului
+          pe care îl activează. JavaScript citește acest atribut în
+          funcția `switchView()` din app.js.
+
+          View-urile disponibile (corespund cu id-urile secțiunilor din main):
+            - dashboard   → #dashboardView
+            - fuel        → #fuelView
+            - expenses    → #expensesView
+            - edit        → #editView
+            - backup      → #backupView
+
+          Clasa `.active` pe butonul curent e gestionată de JS.
+          Clasa `.nav-icon` învelește SVG-urile pentru aliniere corectă.
+        -->
         <nav class="nav" aria-label="Sectiuni">
+
+          <!-- Dashboard: privire generală KPI + grafice -->
           <button class="nav-button active" data-view="dashboard" title="Dashboard">
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -29,6 +89,8 @@
               </svg>
             </span> Dashboard
           </button>
+
+          <!-- Combustibil: tabelul complet al alimentărilor -->
           <button class="nav-button" data-view="fuel" title="Combustibil">
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -39,6 +101,8 @@
               </svg>
             </span> Combustibil
           </button>
+
+          <!-- Cheltuieli: tabelul cu costuri non-combustibil -->
           <button class="nav-button" data-view="expenses" title="Cheltuieli">
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -49,6 +113,8 @@
               </svg>
             </span> Cheltuieli
           </button>
+
+          <!-- Adaugă / Editează: formularele de introducere date -->
           <button class="nav-button" data-view="edit" title="Adaugă sau editează">
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -58,6 +124,8 @@
               </svg>
             </span> Adaugă / Editează
           </button>
+
+          <!-- Backup / Restore: export și import JSON -->
           <button class="nav-button" data-view="backup" title="Backup și restore">
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -67,39 +135,154 @@
               </svg>
             </span> Backup / Restore
           </button>
+
         </nav>
+
+        <!--
+          CARD TOTAL GENERAL (sidebar)
+          Afișează suma TUTUROR cheltuielilor din baza de date,
+          IGNORÂND filtrele active (spre deosebire de KPI-urile din dashboard
+          care respectă filtrele).
+
+          Elementele actualizate din JavaScript (app.js → renderDashboard):
+            - `#sideTotal`   → suma totală formatată (ex: "12.450 lei")
+            - `#sideUpdated` → data celei mai recente înregistrări
+        -->
         <div class="side-note">
           <span>TOTAL</span>
           <strong id="sideTotal">0 lei</strong>
           <small id="sideUpdated">ultima actualizare: -</small>
         </div>
-        <button class="sidebar-footer" id="readmeTrigger" type="button">@ concept și realizare vlad 39</button>
-      </aside>
 
+        <!--
+          FOOTER SIDEBAR
+          Buton discret care deschide modalul cu documentația proiectului
+          (fișierul readme.md). Evenimentul click e legat în app.js →
+          `document.getElementById("readmeTrigger")`.
+        -->
+        <button class="sidebar-footer" id="readmeTrigger" type="button">
+          @ concept și realizare vlad 39
+        </button>
+
+      </aside>
+      <!-- /sidebar -->
+
+
+      <!--
+        ════════════════════════════════════════════════════════════════════
+        MAIN — zona principală de conținut
+        ════════════════════════════════════════════════════════════════════
+        Conține: topbar, filtre și toate view-urile (secțiunile).
+        Doar secțiunea cu clasa `.active` este vizibilă — clasa e
+        comutată de JavaScript în `switchView()`.
+      -->
       <main class="main">
-        <!-- Header-ul se schimbă din JavaScript în funcție de pagina activă. -->
+
+        <!--
+          ════════════════════════════════════════════════════════════════
+          TOPBAR
+          ════════════════════════════════════════════════════════════════
+          Bara de sus cu titlul paginii curente, butonul de temă și
+          badge-urile cu km/litri.
+
+          Titlul și subtitlul sunt schimbate din JavaScript (app.js →
+          `switchView()`) folosind obiectul `titles`.
+        -->
         <header class="topbar">
           <div>
+            <!--
+              Titlul paginii — actualizat din JS la fiecare schimbare de view.
+              Sursa textelor: obiectul `titles` din app.js.
+            -->
             <h1 id="pageTitle">Dashboard</h1>
             <p id="pageSubtitle">Privire rapidă peste costuri, consum și kilometri.</p>
           </div>
+
           <div class="topbar-actions">
-            <button class="theme-toggle" id="themeToggle" type="button" title="Schimbă tema" aria-label="Schimbă tema">
+
+            <!--
+              BUTON SCHIMBARE TEMĂ (light ↔ dark)
+              ──────────────────────────────────────
+              Design: pill switch orizontal — soarele (☀) e la stânga,
+              luna (☾) la dreapta. Un thumb CSS (::before) alunecă între ele.
+
+              Cum funcționează:
+                - Click → JS apelează `toggleTheme()` în app.js
+                - `toggleTheme()` schimbă `data-theme` pe <html>
+                - CSS reacționează la `:root[data-theme="dark"]`
+                - Preferința e salvată în localStorage cu cheia
+                  "carDashboardTheme"
+
+              Personalizare vizuală (doar CSS, fără JS):
+                - Formă: `.theme-toggle { border-radius: ... }`
+                  (100px = complet rotund, 8px = dreptunghiular)
+                - Thumb: `.theme-toggle::before { border-radius: ... }`
+                - Dimensiuni: `width` și `height` pe `.theme-toggle`
+                - Culori: `--gold` pentru soare, `--primary-dark` pentru lună
+
+              ⚠ Nu schimba structura HTML a acestui buton fără a adapta
+                și regulile CSS corespunzătoare.
+            -->
+            <button
+              class="theme-toggle"
+              id="themeToggle"
+              type="button"
+              title="Schimbă tema"
+              aria-label="Schimbă tema"
+            >
+              <!-- Iconița soare (stânga în light mode, muted în dark mode) -->
               <span class="theme-icon theme-sun" aria-hidden="true">☀</span>
+              <!-- Iconița lună (muted în light mode, activă în dark mode) -->
               <span class="theme-icon theme-moon" aria-hidden="true">☾</span>
             </button>
+
+            <!--
+              BADGE LITRI TOTAL
+              Vizibil NUMAI pe pagina Combustibil (view="fuel").
+              Ascuns/afișat din JS → `renderHeaderBadge()` cu `.hidden`.
+              Valoarea e suma litrilor filtrați.
+            -->
             <div class="km-badge hidden" id="fuelLitersBadge" aria-label="Total combustibil">
               <span>TOTAL LITRI</span>
               <strong>0 l</strong>
             </div>
+
+            <!--
+              BADGE KM TOTAL
+              Vizibil NUMAI pe pagina Dashboard.
+              Ascuns/afișat din JS → `renderHeaderBadge()`.
+              Valoarea e cel mai mare odometru din toate alimentările.
+            -->
             <div class="km-badge" id="kmBadge" aria-label="Kilometri total">
               <span>KM TOTAL</span>
               <strong>0</strong>
             </div>
+
           </div>
         </header>
+        <!-- /topbar -->
 
-        <!-- Filtrele sunt afișate doar pe paginile cu liste/date analizabile. -->
+
+        <!--
+          ════════════════════════════════════════════════════════════════
+          FILTRE GLOBALE
+          ════════════════════════════════════════════════════════════════
+          Bara de filtre e partajată între Dashboard, Combustibil și
+          Cheltuieli. Pe paginile Edit și Backup e ascunsă automat
+          (clasa `.hidden` adăugată de JS → `switchView()`).
+
+          Filtrele active sunt stocate în `state.filters` (app.js) și
+          aplicate la fiecare re-render prin funcțiile:
+            - `filteredExpenses()` → filtrează cheltuielile
+            - `filteredFuel()`     → filtrează alimentările
+
+          Elementele:
+            - `#filterStart`    → an de început (select generat de JS)
+            - `#filterEnd`      → an de sfârșit (select generat de JS)
+            - `#filterCategory` → categorie (options populate din date)
+            - `#filterSearch`   → căutare text liber
+            - `#clearFilters`   → resetează toate filtrele
+        -->
         <section class="filters">
           <label>
             De la
@@ -113,19 +296,74 @@
             Categorie
             <select id="filterCategory">
               <option value="">Toate</option>
+              <!-- Restul opțiunilor sunt populate dinamic din JS -->
             </select>
           </label>
           <label>
             Căutare
-            <input type="search" id="filterSearch" placeholder="produs, tip, benzinărie" />
+            <input
+              type="search"
+              id="filterSearch"
+              placeholder="produs, tip, benzinărie"
+            />
           </label>
           <button class="ghost-button" id="clearFilters">Șterge filtre</button>
         </section>
+        <!-- /filtre -->
 
-        <!-- Dashboard: KPI-uri, grafice și ultimele înregistrări. -->
+
+        <!--
+          ════════════════════════════════════════════════════════════════
+          VIEW: DASHBOARD
+          ════════════════════════════════════════════════════════════════
+          Prima pagină — vizibilă implicit (clasa `.active` inițială).
+          Conține:
+            1. KPI Grid       — 6 carduri cu indicatori cheie
+            2. Chart Grid     — 4 grafice canvas
+            3. Split Grid     — 2 tabele cu ultimele înregistrări
+        -->
         <section class="view active" id="dashboardView">
-          <div class="kpi-grid" id="kpiGrid"></div>
+
+          <!--
+            KPI GRID
+            Grid cu 3 coloane și 2 rânduri (6 carduri totale).
+            Conținutul cardurilor e generat complet din JavaScript
+            (app.js → `renderDashboard()`), inclusiv culorile de accent.
+
+            Cardurile afișate (în ordine):
+              1. Acte          (RCA, viniete, ITP)
+              2. Întreținere   (piese, scule, manoperă)
+              3. Consumabile   (curățare și diverse)
+              4. Combustibil   (total alimentări)
+              5. Consum mediu  (l/100km calculat ponderat)
+              6. Cost/km       (lei per km parcurs)
+
+            Pentru a modifica numărul de coloane: CSS → `.kpi-grid { grid-template-columns: ... }`
+            Pentru a modifica cardurile afișate: JS → array `cards` în `renderDashboard()`
+          -->
+          <div class="kpi-grid" id="kpiGrid">
+            <!-- Populat dinamic de JavaScript -->
+          </div>
+
+          <!--
+            CHART GRID
+            Grid cu 2 coloane; elementele `.wide` ocupă ambele coloane.
+            Graficele sunt desenate pe elemente <canvas> prin Canvas 2D API
+            (fără bibliotecă externă) în funcțiile `draw*Chart()` din app.js.
+
+            Atributul `height="260"` pe canvas controlează înălțimea în pixeli
+            CSS a graficului. Modifică-l direct în HTML pentru mai mult/mai
+            puțin spațiu vertical.
+
+            Graficele disponibile:
+              - monthlyChart    → Bar chart cheltuieli lunare (span 2 col)
+              - categoryChart   → Donut chart pe categorii
+              - consumptionChart → Line chart consum l/100km
+              - priceChart      → Line chart preț lei/litru (span 2 col)
+          -->
           <div class="chart-grid">
+
+            <!-- Cheltuieli lunare — bar chart — lățime completă -->
             <article class="panel wide">
               <div class="panel-header">
                 <h2>Cheltuieli lunare</h2>
@@ -133,6 +371,8 @@
               </div>
               <canvas id="monthlyChart" height="260"></canvas>
             </article>
+
+            <!-- Distribuție categorii — donut chart -->
             <article class="panel">
               <div class="panel-header">
                 <h2>Categorii</h2>
@@ -140,6 +380,8 @@
               </div>
               <canvas id="categoryChart" height="260"></canvas>
             </article>
+
+            <!-- Evoluție consum — line chart -->
             <article class="panel">
               <div class="panel-header">
                 <h2>Consum</h2>
@@ -147,6 +389,8 @@
               </div>
               <canvas id="consumptionChart" height="260"></canvas>
             </article>
+
+            <!-- Evoluție preț benzină — line chart — lățime completă -->
             <article class="panel wide">
               <div class="panel-header">
                 <h2>Preț benzină</h2>
@@ -154,34 +398,82 @@
               </div>
               <canvas id="priceChart" height="260"></canvas>
             </article>
+
           </div>
+          <!-- /chart-grid -->
+
+          <!--
+            SPLIT GRID (2 tabele alăturate)
+            Ultimele 8 înregistrări din fiecare categorie, sortate
+            descrescător după dată. Populate din JS → `renderDashboard()`.
+
+            `#recentExpenses` → ultimele cheltuieli (dată, categorie, produs, cost)
+            `#recentFuel`     → ultimele alimentări (dată, benzinărie, litri, consum)
+          -->
           <div class="split-grid">
+
             <article class="panel">
               <div class="panel-header">
                 <h2>Ultimele cheltuieli</h2>
               </div>
               <div class="table-wrap">
                 <table>
-                  <thead><tr><th>Data</th><th>Categorie</th><th>Produs</th><th>Cost</th></tr></thead>
-                  <tbody id="recentExpenses"></tbody>
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Categorie</th>
+                      <th>Produs</th>
+                      <th>Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentExpenses">
+                    <!-- Populat dinamic de JavaScript -->
+                  </tbody>
                 </table>
               </div>
             </article>
+
             <article class="panel">
               <div class="panel-header">
                 <h2>Ultimele alimentări</h2>
               </div>
               <div class="table-wrap">
                 <table>
-                  <thead><tr><th>Data</th><th>Benzinărie</th><th>Litri</th><th>Consum</th></tr></thead>
-                  <tbody id="recentFuel"></tbody>
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Benzinărie</th>
+                      <th>Litri</th>
+                      <th>Consum</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentFuel">
+                    <!-- Populat dinamic de JavaScript -->
+                  </tbody>
                 </table>
               </div>
             </article>
-          </div>
-        </section>
 
-        <!-- Combustibil: tabelul complet al alimentărilor. -->
+          </div>
+          <!-- /split-grid -->
+
+        </section>
+        <!-- /dashboardView -->
+
+
+        <!--
+          ════════════════════════════════════════════════════════════════
+          VIEW: COMBUSTIBIL
+          ════════════════════════════════════════════════════════════════
+          Tabelul complet al alimentărilor, cu toate câmpurile.
+          Populat din JS → `renderFuelTable()`.
+
+          Butonul "＋ Nou" deschide formularul de alimentare (tab Edit)
+          prin atributul `data-open-form="fuel"` gestionat în app.js.
+
+          Coloane: Data, Benzinărie, Cost, Lei/l, Litri, Km total,
+                   Km/plin, Consum, Acțiuni (editare/ștergere)
+        -->
         <section class="view" id="fuelView">
           <article class="panel">
             <div class="panel-header">
@@ -192,16 +484,39 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Data</th><th>Benzinărie</th><th>Cost</th><th>Lei/l</th><th>Litri</th><th>Km total</th><th>Km/plin</th><th>Consum</th><th></th>
+                    <th>Data</th>
+                    <th>Benzinărie</th>
+                    <th>Cost</th>
+                    <th>Lei/l</th>
+                    <th>Litri</th>
+                    <th>Km total</th>
+                    <th>Km/plin</th>
+                    <th>Consum</th>
+                    <th></th><!-- coloana butoane editare/ștergere -->
                   </tr>
                 </thead>
-                <tbody id="fuelTable"></tbody>
+                <tbody id="fuelTable">
+                  <!-- Populat dinamic de JavaScript -->
+                </tbody>
               </table>
             </div>
           </article>
         </section>
+        <!-- /fuelView -->
 
-        <!-- Cheltuieli: tabelul complet pentru costuri non-combustibil. -->
+
+        <!--
+          ════════════════════════════════════════════════════════════════
+          VIEW: CHELTUIELI
+          ════════════════════════════════════════════════════════════════
+          Tabelul complet al cheltuielilor non-combustibil.
+          Populat din JS → `renderExpenseTable()`.
+
+          Categorii posibile (din date reale, nu hardcodate în HTML):
+            Acte, Piese + scule, Consumabile + diverse, Manopera, etc.
+
+          Coloane: Data, Categorie, Produs, Tip, Cost, Acțiuni
+        -->
         <section class="view" id="expensesView">
           <article class="panel">
             <div class="panel-header">
@@ -212,30 +527,66 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Data</th><th>Categorie</th><th>Produs</th><th>Tip</th><th>Cost</th><th></th>
+                    <th>Data</th>
+                    <th>Categorie</th>
+                    <th>Produs</th>
+                    <th>Tip</th>
+                    <th>Cost</th>
+                    <th></th><!-- coloana butoane editare/ștergere -->
                   </tr>
                 </thead>
-                <tbody id="expenseTable"></tbody>
+                <tbody id="expenseTable">
+                  <!-- Populat dinamic de JavaScript -->
+                </tbody>
               </table>
             </div>
           </article>
         </section>
+        <!-- /expensesView -->
 
-        <!-- Formulare: același ecran permite adăugare și editare. -->
+
+        <!--
+          ════════════════════════════════════════════════════════════════
+          VIEW: ADAUGĂ / EDITEAZĂ
+          ════════════════════════════════════════════════════════════════
+          Același ecran servește atât adăugarea, cât și editarea.
+          Când se editează, formularul e pre-completat de JS → `fillForm()`,
+          iar titlul panoului se schimbă din "Cheltuială" în
+          "Editează cheltuiala" (și similar pentru alimentare).
+
+          Câmpul hidden `name="id"` determină comportamentul:
+            - gol    → POST (creare nouă)
+            - completat → PUT (actualizare înregistrare existentă)
+
+          Câmpul `list="categoryList"` pe input-ul de categorie
+          oferă autocomplete din categoriile existente în baza de date
+          (populate de JS în `<datalist id="categoryList">`).
+        -->
         <section class="view" id="editView">
           <div class="form-grid">
+
+            <!--
+              FORMULAR CHELTUIALĂ
+              Câmpuri: Data*, Categorie*, Produs*, Tip, Cost lei*, Km total, Note
+              (* = required)
+
+              Evenimentul submit e capturat în JS → `saveExpense()`.
+              Butonul "Resetează" apelează JS → `resetForm("expenseForm")`.
+            -->
             <article class="panel">
               <div class="panel-header">
+                <!-- Titlul se schimbă din JS între "Cheltuială" și "Editează cheltuiala" -->
                 <h2 id="expenseFormTitle">Cheltuială</h2>
               </div>
               <form id="expenseForm" class="record-form">
+                <!-- Câmp ascuns: gol = adăugare nouă; cu valoare = editare -->
                 <input type="hidden" name="id" />
-                <label>Data <input type="date" name="date" required /></label>
-                <label>Categorie <input name="category" list="categoryList" required /></label>
-                <label>Produs <input name="product" required /></label>
-                <label>Tip <input name="type" /></label>
-                <label>Cost lei <input name="costLei" type="number" step="0.01" required /></label>
-                <label>Km total <input name="odometerKm" type="number" step="1" /></label>
+                <label>Data          <input type="date"   name="date"       required /></label>
+                <label>Categorie     <input               name="category"   list="categoryList" required /></label>
+                <label>Produs        <input               name="product"    required /></label>
+                <label>Tip           <input               name="type"       /></label>
+                <label>Cost lei      <input type="number" name="costLei"    step="0.01" required /></label>
+                <label>Km total      <input type="number" name="odometerKm" step="1" /></label>
                 <label class="full">Note <textarea name="notes" rows="3"></textarea></label>
                 <div class="form-actions">
                   <button type="button" class="ghost-button" id="resetExpense">Reseteaza</button>
@@ -244,20 +595,36 @@
               </form>
             </article>
 
+            <!--
+              FORMULAR ALIMENTARE
+              Câmpuri: Data*, Benzinărie*, Cost lei*, Lei/l, Litri,
+                       Km total, Km/plin, Consum, Note
+
+              Câmpurile Km/plin și Consum pot fi calculate AUTOMAT de JS
+              (app.js → `updateFuelDerivedFields()`) pe baza odometrului
+              și a litrilor introduși. Dacă utilizatorul le modifică manual,
+              calculul automat e dezactivat pentru acea sesiune.
+
+              Evenimentul submit: JS → `saveFuel()`.
+              Butonul "Resetează": JS → `resetForm("fuelForm")`.
+            -->
             <article class="panel">
               <div class="panel-header">
+                <!-- Titlul se schimbă din JS între "Alimentare" și "Editează alimentare" -->
                 <h2 id="fuelFormTitle">Alimentare</h2>
               </div>
               <form id="fuelForm" class="record-form">
                 <input type="hidden" name="id" />
-                <label>Data <input type="date" name="date" required /></label>
-                <label>Benzinărie <input name="station" required /></label>
-                <label>Cost lei <input name="costLei" type="number" step="0.01" required /></label>
-                <label>Lei/l <input name="priceLeiPerLiter" type="number" step="0.01" /></label>
-                <label>Litri <input name="liters" type="number" step="0.01" /></label>
-                <label>Km total <input name="odometerKm" type="number" step="1" /></label>
-                <label>Km/plin <input name="kmSinceLastFill" type="number" step="1" /></label>
-                <label>Consum <input name="consumptionPer100Km" type="number" step="0.01" /></label>
+                <label>Data          <input type="date"   name="date"                   required /></label>
+                <label>Benzinărie    <input               name="station"                required /></label>
+                <label>Cost lei      <input type="number" name="costLei"                step="0.01" required /></label>
+                <label>Lei/l         <input type="number" name="priceLeiPerLiter"        step="0.01" /></label>
+                <label>Litri         <input type="number" name="liters"                  step="0.01" /></label>
+                <label>Km total      <input type="number" name="odometerKm"              step="1" /></label>
+                <!-- Km/plin: calculat automat din odometru dacă e disponibil -->
+                <label>Km/plin       <input type="number" name="kmSinceLastFill"         step="1" /></label>
+                <!-- Consum: calculat automat din litri și km/plin -->
+                <label>Consum        <input type="number" name="consumptionPer100Km"     step="0.01" /></label>
                 <label class="full">Note <textarea name="notes" rows="3"></textarea></label>
                 <div class="form-actions">
                   <button type="button" class="ghost-button" id="resetFuel">Reseteaza</button>
@@ -265,12 +632,29 @@
                 </div>
               </form>
             </article>
+
           </div>
         </section>
+        <!-- /editView -->
 
-        <!-- Backup: export/import complet al bazei locale JSON. -->
+
+        <!--
+          ════════════════════════════════════════════════════════════════
+          VIEW: BACKUP / RESTORE
+          ════════════════════════════════════════════════════════════════
+          Export: apelează GET /api/backup → descarcă un JSON cu toate
+                  datele (expenses + fuel + meta + timestamp).
+
+          Import: selectează un fișier JSON descărcat anterior →
+                  POST /api/restore → înlocuiește datele curente.
+
+          ⚠ Restore-ul este DISTRUCTIV: datele existente sunt șterse
+            complet și înlocuite cu cele din backup.
+        -->
         <section class="view" id="backupView">
           <div class="form-grid">
+
+            <!-- EXPORT BACKUP -->
             <article class="panel">
               <div class="panel-header">
                 <div>
@@ -278,8 +662,11 @@
                   <p>Salvează toate datele aplicației într-un fișier JSON.</p>
                 </div>
               </div>
+              <!-- Click → JS → `downloadBackup()` → GET /api/backup -->
               <button class="primary-button" id="downloadBackup">Descarca backup JSON</button>
             </article>
+
+            <!-- IMPORT RESTORE -->
             <article class="panel">
               <div class="panel-header">
                 <div>
@@ -291,20 +678,71 @@
                 <input type="file" id="restoreFile" accept="application/json,.json" />
               </label>
               <div class="form-actions">
+                <!-- Click → JS → `restoreBackup()` → POST /api/restore -->
                 <button class="primary-button" id="restoreBackup">Încarcă backup</button>
               </div>
             </article>
+
           </div>
         </section>
-      </main>
-    </div>
+        <!-- /backupView -->
 
+      </main>
+      <!-- /main -->
+
+    </div>
+    <!-- /app-shell -->
+
+
+    <!--
+      ════════════════════════════════════════════════════════════════════
+      ELEMENTE GLOBALE (în afara app-shell, overlay pe toată pagina)
+      ════════════════════════════════════════════════════════════════════
+    -->
+
+    <!--
+      DATALIST CATEGORII
+      Oferă autocomplete pe câmpul "Categorie" din formularul de cheltuieli.
+      Opțiunile sunt populate dinamic din JS → `renderCategoryOptions()`,
+      extrase din categoriile existente în baza de date.
+    -->
     <datalist id="categoryList"></datalist>
+
+    <!--
+      TOOLTIP GRAFICE
+      Element flotant care apare la hover pe graficele canvas.
+      Poziționat și afișat/ascuns din JS → `showChartTooltip()` /
+      `hideChartTooltip()`. Clasa `.show` îl face vizibil.
+      Conținutul (titlu + valoare) e injectat dinamic.
+    -->
     <div class="chart-tooltip" id="chartTooltip"></div>
-    <!-- Popup silent pentru documentația proiectului, deschis din footer. -->
+
+    <!--
+      MODAL DOCUMENTAȚIE (README)
+      ──────────────────────────
+      Deschis din butonul footer al sidebar-ului ("@ concept și realizare vlad 39").
+      Conținutul (readme.md) e încărcat lazy la primul click via fetch()
+      din JS → `openReadme()` și randat ca HTML simplu prin `renderMarkdown()`.
+
+      Componente:
+        - `.readme-backdrop`  → fundalul semi-transparent cu blur
+        - `.readme-dialog`    → containerul dialogului (role="dialog" pentru accesibilitate)
+        - `.readme-header`    → bara cu titlu și buton închidere
+        - `.readme-content`   → conținutul randat din markdown
+
+      Închidere:
+        - Buton ×          → JS → `closeReadme()`
+        - Click pe backdrop → JS → `closeReadme()`
+        - Tasta Escape     → JS → listener global pe `document`
+    -->
     <div class="readme-modal" id="readmeModal" aria-hidden="true">
       <div class="readme-backdrop" id="readmeBackdrop"></div>
-      <section class="readme-dialog" role="dialog" aria-modal="true" aria-labelledby="readmeTitle">
+      <section
+        class="readme-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="readmeTitle"
+      >
         <header class="readme-header">
           <div>
             <span>Documentatie</span>
@@ -312,10 +750,32 @@
           </div>
           <button class="icon-button" id="readmeClose" type="button" title="Închide">×</button>
         </header>
-        <article class="readme-content" id="readmeContent"></article>
+        <article class="readme-content" id="readmeContent">
+          <!-- Populat lazy din fetch("readme.md") la primul click -->
+        </article>
       </section>
     </div>
+    <!-- /readme-modal -->
+
+    <!--
+      TOAST (notificare temporară)
+      Apare în colțul din dreapta-jos pentru confirmări sau erori.
+      Afișat/ascuns din JS → `toast(mesaj)`. Dispare automat după 2.6s.
+      Clasa `.show` controlează vizibilitatea (opacity + transform).
+      role="status" anunță conținutul cititorelor de ecran.
+    -->
     <div class="toast" id="toast" role="status"></div>
+
+    <!--
+      JAVASCRIPT PRINCIPAL
+      Încărcat la sfârșitul body-ului pentru a garanta că DOM-ul e complet
+      înainte ca scriptul să ruleze (fără nevoie de DOMContentLoaded wrapper,
+      deși există și acela în cod pentru siguranță).
+
+      Conține toată logica aplicației: state management, fetch API,
+      render funcții, grafice canvas, formulare, backup/restore, teme.
+    -->
     <script src="app.js"></script>
+
   </body>
 </html>

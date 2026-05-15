@@ -1,5 +1,106 @@
+/*
+ * ============================================================
+ * STYLES.CSS — Stilizarea completă a Car Cost Dashboard
+ * ============================================================
+ *
+ * Structura fișierului (în ordine):
+ *   1.  FONTURI          → @import Google Fonts
+ *   2.  VARIABILE CSS    → :root (tema light) + [data-theme="dark"]
+ *   3.  RESET            → box-sizing, margini, moștenire font
+ *   4.  APP SHELL        → grid principal (sidebar + main)
+ *   5.  SIDEBAR          → panoul lateral stâng
+ *   6.  BRAND            → logo + nume mașină
+ *   7.  NAVIGAȚIE        → butoane nav + iconițe SVG
+ *   8.  SIDE TOTAL       → cardul cu total din sidebar
+ *   9.  MAIN             → zona principală de conținut
+ *  10.  TOPBAR           → header cu titlu + acțiuni
+ *  11.  THEME TOGGLE     → butonul pill switch light/dark
+ *  12.  BADGE-URI        → km / litri din topbar
+ *  13.  BUTOANE          → primary, ghost, icon, row buttons
+ *  14.  FILTRE           → bara de filtrare globală
+ *  15.  VIEWS            → .view / .view.active (afișare secțiuni)
+ *  16.  KPI GRID         → cardurile cu indicatori cheie
+ *  17.  CHART GRID       → grid-ul graficelor
+ *  18.  PANEL            → containerul generic pentru secțiuni
+ *  19.  TABELE           → stilizare tabele de date
+ *  20.  ROW ACTIONS      → butoanele edit/delete din tabele
+ *  21.  FORMULARE        → formularele de adăugare/editare
+ *  22.  TOAST            → notificare temporară
+ *  23.  CHART TOOLTIP    → tooltip la hover pe grafice
+ *  24.  README MODAL     → modalul cu documentația
+ *  25.  RESPONSIVE       → breakpoints 1050px și 720px
+ *
+ * ────────────────────────────────────────────────────────────
+ * SISTEM DE TEME:
+ * Tema e controlată prin atributul `data-theme` pe elementul <html>.
+ * JavaScript (app.js → applyTheme/toggleTheme) comută între "light" și "dark".
+ * Toate culorile sunt CSS custom properties — schimbând variabilele din
+ * :root sau :root[data-theme="dark"] se actualizează tot UI-ul.
+ *
+ * FONTURI FOLOSITE:
+ *   Outfit  → titluri, valori KPI, numere mari (font-family: 'Outfit')
+ *   DM Sans → tot restul (body, tabele, formulare, butoane)
+ * ============================================================
+ */
+
+
+/* ══════════════════════════════════════════════════════════════
+   1. FONTURI
+   ══════════════════════════════════════════════════════════════
+   Importăm de la Google Fonts. Dacă aplicația rulează offline
+   fără acces la internet, fonturile nu se vor încărca și browserul
+   va folosi font-ul de sistem (ui-sans-serif / system-ui).
+   Pentru offline complet: descarcă fonturile și servește-le local.
+*/
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 
+
+/* ══════════════════════════════════════════════════════════════
+   2. VARIABILE CSS — TEMA LIGHT (default)
+   ══════════════════════════════════════════════════════════════
+   Inspirate de culoarea Hyundai "Aurora Grey Pearl".
+   MODIFICARE TEMĂ: schimbă valorile hex de mai jos.
+
+   CULORILE PRINCIPALE:
+     --bg            → fundalul paginii (în afara panourilor)
+     --surface       → fundalul panourilor/cardurilor (alb)
+     --surface-soft  → fundal alternativ mai închis (zebra rows, thead)
+     --ink           → culoarea textului principal
+     --muted         → text secundar, labels, note
+     --line          → borduri și separatori
+
+   CULORI DE ACCENT:
+     --primary       → culoarea principală de brand (gri Hyundai)
+     --primary-dark  → varianta mai închisă (hover, gradient)
+     --primary-light → varianta mai deschisă (thumb toggle, hover bg)
+     --accent        → portocaliu pentru acțiuni importante (neutilizat direct în cod curent)
+     --gold          → galben-auriu pentru iconița soare din theme toggle
+     --danger        → roșu pentru butoane de ștergere
+
+   SIDEBAR:
+     --sidebar-start/end → culorile gradientului lateral
+     --sidebar-active    → fundalul butonului activ de navigare
+     --sidebar-border    → borduri în sidebar (semi-transparente pe alb)
+
+   GRAFICE (canvas - citite în app.js via themeColor()):
+     --chart-bars        → culoarea barelor din bar chart
+     --chart-consumption → culoarea liniei consum
+     --chart-price       → culoarea liniei preț benzină
+     --canvas-ink        → text pe canvas (titluri, etichete)
+     --canvas-muted      → text secundar pe canvas (tick labels)
+     --canvas-axis       → culoarea axelor
+     --canvas-grid       → culoarea liniilor de grilă
+
+   UMBRE (shadow):
+     --shadow-sm  → umbra mică (carduri în stare normală)
+     --shadow     → umbra medie (hover, tooltip)
+     --shadow-lg  → umbra mare (modals, toast)
+
+   RAZE DE COLȚ (border-radius):
+     --radius-sm → 8px  (butoane, input-uri, rânduri mici)
+     --radius    → 12px (panouri, filtre)
+     --radius-lg → 16px (carduri KPI, dialog modal)
+*/
 :root {
   /* Tema inspirata de Hyundai Aurora Grey Pearl */
   color-scheme: light;
@@ -39,6 +140,16 @@
   font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   TEMA DARK — suprascrie variabilele din :root
+   ══════════════════════════════════════════════════════════════
+   Activată când <html data-theme="dark"> — setat de JS (app.js → applyTheme).
+   Toate variabilele cu același nume sunt suprascrise; restul UI-ului
+   se adaptează automat prin moștenire CSS.
+
+   Nu schimba structura selectorului :root[data-theme="dark"] —
+   este necesară pentru specificitate corectă față de :root.
+*/
 :root[data-theme="dark"] {
   color-scheme: dark;
   --bg: #131918;
@@ -72,25 +183,57 @@
   --shadow-lg: 0 12px 40px rgba(0,0,0,0.32), 0 4px 12px rgba(0,0,0,0.22);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   3. RESET
+   ══════════════════════════════════════════════════════════════
+   Minimal — nu folosim normalize.css sau reset complet.
+   box-sizing: border-box pe tot: padding și border sunt incluse
+   în dimensiunile declarate (width/height). Standard modern.
+*/
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
   color: var(--ink);
   background: var(--bg);
+  /* Tranziție lină la schimbarea temei (JS → data-theme) */
   transition: background 0.22s ease, color 0.22s ease;
 }
 
+/* Moștenire font pentru elementele de formular (browser nu moștenesc implicit) */
 button, input, select, textarea { font: inherit; }
 
-/* ─── SHELL ──────────────────────────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════════
+   4. APP SHELL — layout principal
+   ══════════════════════════════════════════════════════════════
+   Grid cu 2 coloane:
+     Coloana 1: sidebar fix (272px)
+     Coloana 2: conținut fluid (1fr = restul spațiului disponibil)
+
+   min-height: 100vh → sidebar la înălțimea completă a viewport-ului.
+
+   MODIFICARE LĂȚIME SIDEBAR: schimbă 272px în altă valoare.
+   La < 1050px (responsive), se colapseaza la 1 coloană (sidebar deasupra).
+*/
 .app-shell {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 272px 1fr;
 }
 
-/* ─── SIDEBAR ────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   5. SIDEBAR
+   ══════════════════════════════════════════════════════════════
+   position: sticky + top: 0 + height: 100vh → rămâne fix pe ecran
+   când utilizatorul scrollează conținutul din main.
+
+   Gradientul de fundal: var(--sidebar-start) sus → var(--sidebar-end) jos
+   Modifică culorile gradientului din variabilele CSS de mai sus.
+
+   Padding: 22px sus/jos, 16px stânga/dreapta.
+   Gap 22px între secțiunile interne (brand, nav, side-note, footer).
+*/
 .sidebar {
   position: sticky;
   top: 0;
@@ -100,11 +243,24 @@ button, input, select, textarea { font: inherit; }
   color: #f4f8f5;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 30px;
   border-right: 1px solid rgba(0,0,0,0.1);
 }
 
-/* ─── BRAND ──────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   6. BRAND — logo + nume masina
+   Containerul logo-ului Hyundai (SVG) + textul brandului.
+   .brand-mark: efect metalic prin gradient CSS + inset shadows.
+   Variabile locale --logo-x, --logo-y, --logo-scale: ajusteaza
+   pozitia si zoom-ul logo-ului fara a modifica SVG-ul.
+   .brand strong = numele masinii: modifica font-size pentru text mai mare.
+   word-spacing: 0.4em pe .brand strong = spatiu intre "Hyundai" si "i20".
+   .brand span = subtitlul ("Evidenta costuri"): uppercase + letter-spacing.
+==============================================================
+   MODIFICARE RAPIDA:
+   - Marime text:   .brand strong { font-size: 20px; }
+   - Spatiu cuvinte:.brand strong { word-spacing: 0.4em; }
+*/ 
 .brand {
   display: flex;
   gap: 13px;
@@ -145,10 +301,9 @@ button, input, select, textarea { font: inherit; }
 
 .brand strong {
   font-family: 'Outfit', sans-serif;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  word-spacing: 0.3em;
+  letter-spacing: 0.04em;
   color: #ffffff;
 }
 
@@ -157,11 +312,19 @@ button, input, select, textarea { font: inherit; }
   font-size: 11px;
   margin-top: 3px;
   font-weight: 400;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-/* ─── NAV ────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   7. NAVIGATIE
+   ══════════════════════════════════════════════════════════════
+   .nav-button: buton full-width cu icon SVG + text.
+   Starea activa: border-left 2.5px alb + background semi-transparent.
+   Hover: background subtil + text mai luminos.
+   Iconitele SVG sunt in .nav-icon (18x18px, stroke, fill:none).
+   Tranzitia pe toate butoanele: 0.13s ease pentru snappiness.
+*/
 .nav { display: grid; gap: 18px; }
 
 .nav-button,
@@ -212,8 +375,8 @@ button, input, select, textarea { font: inherit; }
 }
 
 .nav-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -221,7 +384,14 @@ button, input, select, textarea { font: inherit; }
   stroke-linejoin: round;
 }
 
-/* ─── SIDE TOTAL ─────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   8. SIDE TOTAL — cardul cu totalul general din sidebar
+   ══════════════════════════════════════════════════════════════
+   margin-top: auto → impins la baza sidebar-ului (flex column).
+   Contine: label "TOTAL", suma formatata, data ultimei inregistrari.
+   Elementele actualizate din JS: #sideTotal si #sideUpdated.
+   Cercul decorativ ::before este pur estetic (poate fi sters).
+*/
 .side-note {
   margin-top: auto;
   padding: 15px 18px;
@@ -247,10 +417,10 @@ button, input, select, textarea { font: inherit; }
 .side-note span {
   display: block;
   color: rgba(255,255,255,0.48);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.15em;
 }
 
 .side-note strong {
@@ -267,7 +437,7 @@ button, input, select, textarea { font: inherit; }
   display: block;
   margin-top: 8px;
   color: rgba(255,255,255,0.4);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.35;
 }
 
@@ -288,13 +458,26 @@ button, input, select, textarea { font: inherit; }
   text-decoration: underline;
 }
 
-/* ─── MAIN ───────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   9. MAIN — zona principala de continut
+   ══════════════════════════════════════════════════════════════
+   min-width: 0 → previne overflow in grid (regula CSS grid).
+   Padding: 32px sus/lateral, 44px jos pentru spatiu de respiratie.
+   MODIFICARE PADDING: schimba valorile din padding de mai jos.
+*/
 .main {
   min-width: 0;
   padding: 32px 32px 44px;
 }
 
-/* ─── TOPBAR ─────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   10. TOPBAR — header cu titlu + actiuni
+   ══════════════════════════════════════════════════════════════
+   Flex row: titlu (stanga) + actiuni (dreapta).
+   Titlul si subtitlul sunt suprascrise de JS la fiecare navigare.
+   h1: Outfit 700, 28px, tracking negativ pentru aspect modern.
+   .topbar p: subtitlul, culoare muted.
+*/
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -314,7 +497,7 @@ h1, h2, p { margin: 0; }
 
 h1 {
   font-family: 'Outfit', sans-serif;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -328,7 +511,33 @@ h1 {
 
 .top-actions { display: flex; gap: 10px; }
 
-/* ─── THEME TOGGLE ───────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   11. THEME TOGGLE — butonul pill switch light/dark
+   ══════════════════════════════════════════════════════════════
+   Design: pill orizontal 70x36px cu doua iconite (soare/luna).
+   Un "thumb" CSS (::before pseudo-element) aluneca stanga/dreapta.
+
+   CUM FUNCTIONEAZA:
+     - Light mode: thumb la stanga (translateX: 0), soare activ
+     - Dark mode:  thumb la dreapta (translateX: 34px), luna activa
+     - Tranzitia thumb: cubic-bezier cu efect de "spring" (bounce)
+     - JS toggle: app.js -> toggleTheme() schimba data-theme pe <html>
+
+   PERSONALIZARE FORMA:
+     - Complet rotund (pill):   border-radius: 100px  (default)
+     - Dreptunghiular:          border-radius: 8px
+     - Rotunjit mediu:          border-radius: 12px
+   Schimba acelasi border-radius si pe ::before (thumb) proportional.
+
+   PERSONALIZARE DIMENSIUNI:
+     - Mareste/micsoreaza: width + height pe .theme-toggle
+     - Ajusteaza translateX din :root[data-theme="dark"] .theme-toggle::before
+       la (width - thumb_width - 2*left_offset)
+
+   ICONITE: ☀ (soare) si ☾ (luna) — caractere Unicode.
+     Culoare soare activ: --gold (galben-auriu)
+     Culoare luna activa: --primary-dark
+*/
 /* Horizontal pill switch — thumb slides left↔right */
 .theme-toggle {
   position: relative;
@@ -383,7 +592,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 2px;
+  border-radius: 12px;
   transition: color 0.16s ease;
   pointer-events: none;
 }
@@ -393,7 +602,17 @@ h1 {
 :root[data-theme="dark"] .theme-sun { color: var(--muted); }
 :root[data-theme="dark"] .theme-moon { color: var(--primary-dark); }
 
-/* ─── BADGES ─────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   12. BADGE-URI — km total / litri total din topbar
+   ══════════════════════════════════════════════════════════════
+   Doua badge-uri afisate in dreapta topbar-ului:
+     #kmBadge        → km total (odometru maxim); vizibil pe Dashboard
+     #fuelLitersBadge→ litri filtrați; vizibil pe pagina Combustibil
+
+   Afisare/ascundere controlata de JS (app.js -> renderHeaderBadge)
+   prin clasa .hidden (display: none).
+   Valoarea (strong) e actualizata la fiecare render.
+*/
 .km-badge {
   min-width: 145px;
   padding: 10px 14px;
@@ -419,13 +638,35 @@ h1 {
   display: block;
   margin-top: 4px;
   font-family: 'Outfit', sans-serif;
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.08em;
   line-height: 1;
 }
 
-/* ─── BUTTONS ────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   13. BUTOANE
+   ══════════════════════════════════════════════════════════════
+   Tipuri de butoane in aplicatie:
+
+   .primary-button  → actiunea principala (Salveaza, Descarca backup)
+     Gradient: var(--primary) → var(--primary-dark)
+     Hover: translateY(-1px) + shadow mai mare
+
+   .ghost-button    → actiunea secundara (Resetează, Sterge filtre)
+     Fundal soft, border 1.5px, fara shadow
+
+   .icon-button     → buton patrat 40x40px (✕ modal, actiuni topbar)
+     Border 1.5px, background surface
+
+   .row-button      → butoanele ✎/✕ din randurile tabelelor
+     Mic (32x30px), fundal transparent cu border la hover
+     .danger: culoare rosie pentru stergere
+
+   Toti: border-radius var(--radius-sm) = 8px, tranzitii 0.13s
+   MODIFICARE RAZE: schimba --radius-sm pentru toate odata,
+   sau suprascrie border-radius direct pe clasa specifica.
+*/
 .icon-button {
   width: 40px;
   height: 40px;
@@ -482,7 +723,22 @@ h1 {
 
 .row-button:hover { transform: translateY(-1px); }
 
-/* ─── FILTERS ────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   14. FILTRE — bara de filtrare globala
+   ══════════════════════════════════════════════════════════════
+   Grid cu 5 coloane: 4 campuri + butonul "Sterge filtre".
+   Ascunsa pe view-urile Edit si Backup (clasa .hidden adaugata de JS).
+
+   label: text uppercase + letter-spacing (look profesional).
+   input/select: border 1.5px, focus ring cu box-shadow.
+
+   MODIFICARE NUMAR COLOANE:
+     grid-template-columns: repeat(N, minmax(140px, 1fr)) auto
+     Schimba N pentru mai multe/putine campuri pe rand.
+
+   FOCUS RING: culoarea e setata de --primary; modifica box-shadow
+   din regulile input:focus, select:focus pentru alt aspect.
+*/
 .filters {
   display: grid;
   grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
@@ -526,11 +782,37 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(107,113,112,0.1);
 }
 
-/* ─── VIEWS ──────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   15. VIEWS — sectiunile principale ale aplicatiei
+   ══════════════════════════════════════════════════════════════
+   Fiecare sectiune (dashboard, fuel, expenses, edit, backup) e un
+   element cu clasa .view. Implicit: display: none.
+   Sectiunea activa primeste clasa .active din JS (switchView())
+   si devine display: grid cu gap de 20px intre subsectiuni.
+*/
 .view { display: none; }
 .view.active { display: grid; gap: 20px; }
 
-/* ─── KPI GRID ───────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   16. KPI GRID — cardurile cu indicatori cheie
+   ══════════════════════════════════════════════════════════════
+   Grid cu 3 coloane, 2 randuri = 6 carduri.
+   MODIFICARE COLOANE: schimba grid-template-columns.
+
+   .kpi-card:
+     - border-top: 3px solid var(--card-accent) → linia colorata de sus
+     - --card-accent e setata inline din JS pentru fiecare card
+     - Gradient de fundal: culoarea accentului 8% + surface
+     - ::after: cerc decorativ dreapta-sus (sterge regula pentru a-l elimina)
+     - Hover: translateY(-2px) + shadow mai mare
+
+   Elementele interne:
+     span   → label uppercase (ex: "ACTE")
+     strong → valoarea mare cu Outfit font (ex: "1.250 lei")
+     small  → nota de jos (ex: "RCA, viniete, ITP")
+
+   STERGERE CERC DECORATIV: elimina sau comenteaza regula .kpi-card::after
+*/
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(190px, 1fr));
@@ -593,7 +875,7 @@ input:focus, select:focus, textarea:focus {
   font-size: 27px;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.08em;
+  letter-spacing: -0.02em;
   position: relative;
   z-index: 1;
 }
@@ -605,7 +887,14 @@ input:focus, select:focus, textarea:focus {
   z-index: 1;
 }
 
-/* ─── CHART GRID ─────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   17. CHART GRID — grila graficelor
+   ══════════════════════════════════════════════════════════════
+   Grid cu 2 coloane. Elementele cu clasa .wide ocupa ambele coloane.
+   Graficele sunt elemente <canvas> desenate din JS cu Canvas 2D API.
+   Inaltimea canvas-ului e controlata de atributul HTML height="260".
+   Modifica-l direct in index.html pentru mai mult/mai putin spatiu.
+*/
 .chart-grid, .split-grid, .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -614,7 +903,20 @@ input:focus, select:focus, textarea:focus {
 
 .chart-grid .wide { grid-column: span 2; }
 
-/* ─── PANEL ──────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   18. PANEL — containerul generic pentru sectiuni
+   ══════════════════════════════════════════════════════════════
+   Suprafata alba cu border, border-radius si shadow.
+   Padding: 22px lateral + 20px jos.
+
+   .panel-header: flex row cu titlu + actiuni optionale.
+     - Border-bottom separator intre header si continut
+     - h2: Outfit 700, 16px
+
+   Utilizeaza clase diferite de raza vs KPI:
+     .kpi-card: border-radius var(--radius-lg) = 16px
+     .panel:    border-radius var(--radius)    = 12px
+*/
 .panel {
   border-radius: var(--radius);
   padding: 22px 22px 20px;
@@ -652,7 +954,21 @@ canvas {
   display: block;
 }
 
-/* ─── TABLES ─────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   19. TABELE — stilizarea tabelelor de date
+   ══════════════════════════════════════════════════════════════
+   .table-wrap: overflow: auto → scroll orizontal pe ecrane mici.
+   min-width: 680px pe table → previne strangerea coloanelor pana la
+   ilizibilitate; activat prin overflow pe wrapper.
+
+   thead: fundal --surface-soft, border-bottom 2px (mai gros = separator clar).
+   th: uppercase, letter-spacing, font mic (10.5px) — look profesional.
+   td: 13.5px, tabular-nums pe coloanele numerice (.number).
+
+   Zebra stripes: rand par = fundal usor colorat (color-mix 35%).
+   Hover: fundal mai vizibil pe randul hover-it (60%).
+   Ultimul rand: fara border-bottom (curatenie vizuala).
+*/
 .table-wrap {
   overflow: auto;
   border-radius: var(--radius-sm);
@@ -701,7 +1017,14 @@ td.number, th.number {
   font-variant-numeric: tabular-nums;
 }
 
-/* ─── ROW ACTIONS ────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   20. ROW ACTIONS — butoanele din coloanele de actiuni
+   ══════════════════════════════════════════════════════════════
+   Butoane mici (32x30px) pentru editare (✎) si stergere (×).
+   In stare normala: fundal subtil, fara border vizibil.
+   Hover: border apare + fundal mai pronuntat.
+   .danger (stergere): text rosu cu fundal rosu subtil la hover.
+*/
 .row-actions { display: flex; justify-content: flex-end; gap: 5px; }
 
 .row-button {
@@ -727,7 +1050,16 @@ td.number, th.number {
   border-color: color-mix(in srgb, var(--danger) 28%, transparent);
 }
 
-/* ─── FORMS ──────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   21. FORMULARE — adaugare si editare inregistrari
+   ══════════════════════════════════════════════════════════════
+   .record-form: grid cu 2 coloane pentru campurile formularului.
+   .full: clasa pentru campuri care ocupa ambele coloane (Note textarea).
+   .form-actions: flex row aliniat dreapta, border-top separator.
+
+   Campurile input/select/textarea sunt stilizate mai sus (sectiunea 14).
+   Modificare numar coloane: schimba grid-template-columns pe .record-form.
+*/
 .record-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -745,7 +1077,17 @@ td.number, th.number {
   margin-top: 2px;
 }
 
-/* ─── TOAST ──────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   22. TOAST — notificare temporara
+   ══════════════════════════════════════════════════════════════
+   Pozitionat fix in dreapta-jos (right: 24px, bottom: 28px).
+   Forma pill (border-radius: 100px), fundal --ink (text inversat).
+   Implicit: opacity 0 + translateY(16px) = invizibil si jos.
+   Cu .show: opacity 1 + translateY(0) = vizibil, animat 0.2s.
+   JS (app.js -> toast()) adauga/elimina .show si seteaza timer 2600ms.
+   DURATA: modifica 2600 in app.js -> toast() pentru mai lung/scurt.
+   POZITIE: modifica right/bottom din aceasta regula.
+*/
 .toast {
   position: fixed;
   right: 24px;
@@ -766,7 +1108,15 @@ td.number, th.number {
 
 .toast.show { opacity: 1; transform: translateY(0); }
 
-/* ─── CHART TOOLTIP ──────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   23. CHART TOOLTIP — tooltip la hover pe grafice canvas
+   ══════════════════════════════════════════════════════════════
+   Pozitionat fix la coordonatele mouse-ului (setat din JS).
+   Continut: <strong> titlu + <span> valoare (generate de JS).
+   Tranzitie la afisare: 0.12s pentru responsiveness.
+   Implicit ascuns (opacity: 0); cu .show devine vizibil.
+   Culoare: fundal --ink (invers temei), text --surface.
+*/
 .chart-tooltip {
   position: fixed;
   z-index: 50;
@@ -794,7 +1144,22 @@ td.number, th.number {
   color: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
-/* ─── README MODAL ───────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   24. README MODAL — modalul cu documentatia proiectului
+   ══════════════════════════════════════════════════════════════
+   Structura:
+     .readme-modal     → container fix inset:0, ascuns implicit
+     .readme-backdrop  → fundalul semi-transparent cu blur
+     .readme-dialog    → dialogul propriu-zis (centrat, max 920px)
+     .readme-header    → bara cu gradient de sidebar + buton inchidere
+     .readme-content   → continutul markdown randat ca HTML
+
+   Deschis din JS (openReadme) → adauga .show pe .readme-modal.
+   Inchis: buton ×, click backdrop, sau tasta Escape.
+   Continut: incarctat lazy din fetch("readme.md") la primul click.
+
+   MODIFICARE LATIME: schimba min(920px, ...) din .readme-dialog.
+*/
 .readme-modal { position: fixed; inset: 0; z-index: 80; display: none; }
 .readme-modal.show { display: block; }
 
@@ -892,7 +1257,20 @@ td.number, th.number {
   color: inherit;
 }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   25. RESPONSIVE — breakpoints pentru ecrane mici
+   ══════════════════════════════════════════════════════════════
+   BREAKPOINT 1: <= 1050px (tableta/laptop mic)
+     - Sidebar se colapeaza: layout devine 1 coloana (sidebar deasupra main)
+     - sidebar: position static, height auto (nu mai e sticky)
+     - Navigatia devine scrollabila orizontal (5 coloane)
+     - Filtrele si KPI grid: 2 coloane
+
+   BREAKPOINT 2: <= 720px (telefon)
+     - Padding redus la 18px
+     - Topbar si panel-header: coloana (stacked vertical)
+     - Toate grid-urile devin 1 coloana
+*/
 @media (max-width: 1050px) {
   .app-shell { grid-template-columns: 1fr; }
 

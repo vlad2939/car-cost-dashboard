@@ -31,4 +31,4 @@ Add-on-ul nu scrie automat pe Windows si nu are nevoie de Samba. Fisierele sunt 
 
 ## Acces
 
-Add-on-ul expune aplicatia pe portul intern `3000` si suporta Ingress in Home Assistant.
+Add-on-ul expune aplicatia pe portul intern `3030` si suporta Ingress in Home Assistant.
