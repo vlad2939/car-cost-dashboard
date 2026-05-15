@@ -2,11 +2,10 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
-// Server local, fara framework: suficient pentru o aplicatie personala care
-// serveste fisiere statice si citeste/scrie cateva fisiere JSON.
 const root = __dirname;
 const publicDir = path.join(root, "public");
-const dataDir = path.join(root, "data");
+const bundledDataDir = path.join(root, "data");
+const dataDir = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : bundledDataDir;
 const preferredPort = Number(process.env.PORT || 3000);
 
 const dataFiles = {
@@ -15,8 +14,12 @@ const dataFiles = {
   meta: path.join(dataDir, "meta.json")
 };
 
-// Tipuri MIME pentru fisierele statice din public. Daca adaugam imagini sau
-// alte asset-uri, extensia trebuie listata aici doar daca browserul nu o ghiceste.
+const bundledDataFiles = {
+  expenses: path.join(bundledDataDir, "expenses.json"),
+  fuel: path.join(bundledDataDir, "fuel.json"),
+  meta: path.join(bundledDataDir, "meta.json")
+};
+
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -32,7 +35,6 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
-    // Snapshot complet al bazei locale; frontend-ul face toate calculele din acest raspuns.
     if (url.pathname === "/api/data" && req.method === "GET") {
       return sendJson(res, {
         expenses: readJson(dataFiles.expenses, []),
@@ -65,7 +67,6 @@ const server = http.createServer(async (req, res) => {
       return deleteRecord(res, "fuel", decodeURIComponent(url.pathname.split("/").pop()));
     }
 
-    // Backup-ul produce un singur fisier JSON portabil, usor de arhivat.
     if (url.pathname === "/api/backup" && req.method === "GET") {
       return sendJson(res, {
         version: 1,
@@ -76,8 +77,6 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // Restore-ul inlocuieste datele curente. Validarea este intentionat simpla:
-    // backup-ul trebuie sa contina cel putin listele expenses si fuel.
     if (url.pathname === "/api/restore" && req.method === "POST") {
       const payload = await readBody(req);
       if (!Array.isArray(payload.expenses) || !Array.isArray(payload.fuel)) {
@@ -111,22 +110,34 @@ function listenWithFallback(port) {
 
   server.listen(port, () => {
     console.log(`Car cost dashboard: http://localhost:${port}`);
+    console.log(`Data directory: ${dataDir}`);
   });
 }
 
 function ensureDataFiles() {
   fs.mkdirSync(dataDir, { recursive: true });
-  if (!fs.existsSync(dataFiles.expenses)) writeJson(dataFiles.expenses, []);
-  if (!fs.existsSync(dataFiles.fuel)) writeJson(dataFiles.fuel, []);
-  if (!fs.existsSync(dataFiles.meta)) {
-    writeJson(dataFiles.meta, {
-      car: "Hyundai i20",
-      initialCostLei: 0,
-      currency: "lei",
-      importedAt: null,
-      sourceFile: "COSTURI i20.xlsx"
-    });
+  ensureDataFile("expenses", []);
+  ensureDataFile("fuel", []);
+  ensureDataFile("meta", {
+    car: "Hyundai i20",
+    initialCostLei: 0,
+    currency: "lei",
+    importedAt: null,
+    sourceFile: "COSTURI i20.xlsx"
+  });
+}
+
+function ensureDataFile(type, fallback) {
+  const target = dataFiles[type];
+  if (fs.existsSync(target)) return;
+
+  const bundled = bundledDataFiles[type];
+  if (path.resolve(target) !== path.resolve(bundled) && fs.existsSync(bundled)) {
+    fs.copyFileSync(bundled, target);
+    return;
   }
+
+  writeJson(target, fallback);
 }
 
 function readJson(file, fallback) {
@@ -138,6 +149,7 @@ function readJson(file, fallback) {
 }
 
 function writeJson(file, value) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
