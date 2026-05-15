@@ -1101,8 +1101,8 @@ function drawDonutChart(id, data) {
     ctx.fillText(item.label, 28, y + 9);
 
     ctx.textAlign = "right";
-    ctx.fillText(formatMoney(item.value), 200, y + 9);
-    ctx.fillText(`${formatNumber(percent, 1)}%`, 256, y + 9);
+    ctx.fillText(formatMoney(item.value), 250, y + 9);
+    ctx.fillText(`${formatNumber(percent, 1)}%`, 310, y + 9);
   });
 
   ctx.textAlign = "left"; // resetăm
