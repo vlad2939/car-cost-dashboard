@@ -1085,11 +1085,11 @@ function drawDonutChart(id, data) {
 
   // ── Legenda (primele 5 categorii, în colțul stâng) ─────────────────────
   ctx.fillStyle = "#1b2623"; // culoare placeholder — suprascrisă imediat
-  ctx.font      = "12px sans-serif";
+  ctx.font      = "16px sans-serif";
 
   data.slice(0, 5).forEach((item, index) => {
     const percent = total ? (item.value / total) * 100 : 0;
-    const y       = canvas.height - 72 + index * 14; // rânduri la 14px distanță
+    const y       = canvas.height - 90 + index * 20; // rânduri la 14px distanță
 
     // Pătrat colorat (indicator categorie)
     ctx.fillStyle = categoryColor(item.label, index);
