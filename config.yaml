@@ -1,5 +1,5 @@
 name: "Car Cost Dashboard"
-version: "17.3.0"
+version: "17.3.1"
 slug: car_cost_dashboard
 description: "Dashboard local pentru evidenta costurilor auto, rulat ca add-on Home Assistant."
 url: "https://github.com/vlad2939/car-cost-dashboard"
@@ -12,7 +12,7 @@ ingress: true
 ingress_port: 3000
 panel_icon: mdi:car-info
 ports:
-  3000/tcp: 3000
+  3000/tcp: 3030
 ports_description:
   3000/tcp: "Interfata web Car Cost Dashboard"
 webui: "http://[HOST]:[PORT:3000]"
